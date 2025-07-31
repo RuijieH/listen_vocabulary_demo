@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>807词汇听写</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .progress {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .word-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+            margin: 30px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-section {
+            margin: 30px 0;
+        }
+
+        .word-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .result {
+            font-size: 1.5em;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .vocabulary-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .vocabulary-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .vocabulary-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .audio-controls {
+            margin: 20px 0;
+        }
+
+        .play-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 0 10px;
+        }
+
+        .play-btn:hover {
+            background: #218838;
+        }
+
+        .play-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>807词汇听写</h1>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="currentWord">1</div>
+                <div class="stat-label">当前单词</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalWords">0</div>
+                <div class="stat-label">总单词数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="correctCount">0</div>
+                <div class="stat-label">正确数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="vocabularyCount">0</div>
+                <div class="stat-label">生词本</div>
+            </div>
+        </div>
+
+        <div class="word-display" id="wordDisplay">
+            点击开始听写
+        </div>
+
+        <div class="audio-controls">
+            <button class="play-btn" id="playBtn" onclick="playWord()">播放单词</button>
+        </div>
+
+        <div class="input-section">
+            <input type="text" class="word-input" id="wordInput" placeholder="请输入你听到的单词..." disabled>
+        </div>
+
+        <div class="result hidden" id="result"></div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()" disabled>检查答案</button>
+            <button class="btn btn-success" id="addToVocabBtn" onclick="addToVocabulary()" style="display: none;">加入生词本</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextWord()" style="display: none;">下一个</button>
+            <button class="btn btn-warning" onclick="resetProgress()" style="margin-top: 10px;">重置进度</button>
+        </div>
+
+        <div class="vocabulary-list hidden" id="vocabularyList">
+            <h3>生词本</h3>
+            <div id="vocabularyItems"></div>
+        </div>
+    </div>
+
+    <script>
+        let words = [];
+        let currentIndex = 0;
+        let correctCount = 0;
+        let vocabulary = [];
+        let isAnswerShown = false;
+        let currentWord = '';
+
+        // 保存进度到服务器
+        async function saveProgress() {
+            try {
+                const progress = {
+                    currentIndex: currentIndex,
+                    correctCount: correctCount,
+                    timestamp: Date.now()
+                };
+                
+                const response = await fetch('/api/save-progress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(progress)
+                });
+                
+                if (response.ok) {
+                    console.log('进度保存成功');
+                } else {
+                    console.error('进度保存失败');
+                }
+            } catch (error) {
+                console.error('保存进度时出错:', error);
+            }
+        }
+
+        // 保存生词本到服务器
+        async function saveVocabulary() {
+            try {
+                const response = await fetch('/api/save-vocabulary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vocabulary)
+                });
+                
+                if (response.ok) {
+                    console.log('生词本保存成功');
+                } else {
+                    console.error('生词本保存失败');
+                }
+            } catch (error) {
+                console.error('保存生词本时出错:', error);
+            }
+        }
+
+        // 从服务器加载进度
+        async function loadProgress() {
+            try {
+                const response = await fetch('/api/get-progress');
+                if (response.ok) {
+                    const progress = await response.json();
+                    currentIndex = progress.currentIndex || 0;
+                    correctCount = progress.correctCount || 0;
+                    
+                    updateStats();
+                    console.log('加载了保存的进度:', progress);
+                }
+            } catch (error) {
+                console.error('加载进度失败:', error);
+            }
+        }
+
+        // 从服务器加载生词本
+        async function loadVocabulary() {
+            try {
+                const response = await fetch('/api/get-vocabulary');
+                if (response.ok) {
+                    vocabulary = await response.json();
+                    updateVocabularyList();
+                    console.log('加载了保存的生词本:', vocabulary);
+                }
+            } catch (error) {
+                console.error('加载生词本失败:', error);
+            }
+        }
+
+        // 重置进度
+        async function resetProgress() {
+            if (confirm('确定要重置所有进度吗？这将清除当前进度和生词本。')) {
+                currentIndex = 0;
+                correctCount = 0;
+                vocabulary = [];
+                
+                await saveProgress();
+                await saveVocabulary();
+                
+                updateStats();
+                updateVocabularyList();
+                document.getElementById('vocabularyList').classList.add('hidden');
+                alert('进度已重置');
+            }
+        }
+
+        // 加载单词数据
+        async function loadWords() {
+            try {
+                const response = await fetch('807.txt');
+                const text = await response.text();
+                words = text.split('\n').filter(word => word.trim() && !word.startsWith('#'));
+                document.getElementById('totalWords').textContent = words.length;
+                document.getElementById('progressBar').style.width = '0%';
+                console.log('成功加载单词数量:', words.length);
+                console.log('前5个单词:', words.slice(0, 5));
+            } catch (error) {
+                console.error('Error loading words:', error);
+                alert('无法加载单词文件');
+            }
+        }
+
+        // 初始化
+        async function init() {
+            await loadWords();
+            
+            // 加载保存的进度和生词本
+            await loadProgress();
+            await loadVocabulary();
+            
+            document.getElementById('wordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+            
+            // 添加开始按钮事件
+            document.getElementById('wordDisplay').addEventListener('click', function() {
+                if (words.length > 0) {
+                    startDictation();
+                }
+            });
+            
+            // 如果有保存的进度，显示继续提示
+            if (currentIndex > 0) {
+                document.getElementById('wordDisplay').textContent = `继续听写 (已学习 ${currentIndex} 个单词)`;
+            }
+        }
+
+        // 开始听写
+        function startDictation() {
+            console.log('开始听写，单词数量:', words.length);
+            if (words.length === 0) {
+                console.log('没有单词可听写');
+                return;
+            }
+            
+            // 如果当前索引超出范围，重置为0
+            if (currentIndex >= words.length) {
+                currentIndex = 0;
+                correctCount = 0;
+                vocabulary = [];
+                saveProgress();
+            }
+            
+            updateStats();
+            showWord();
+        }
+
+        // 显示当前单词
+        function showWord() {
+            if (currentIndex >= words.length) {
+                endDictation();
+                return;
+            }
+
+            currentWord = words[currentIndex].trim();
+            document.getElementById('wordDisplay').textContent = '请听写这个单词';
+            document.getElementById('wordInput').value = '';
+            document.getElementById('wordInput').disabled = false;
+            document.getElementById('wordInput').focus();
+            document.getElementById('checkBtn').disabled = false;
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('addToVocabBtn').style.display = 'none';
+            document.getElementById('result').className = 'result hidden';
+            
+            isAnswerShown = false;
+            
+            updateProgress();
+            
+            // 自动播放单词
+            setTimeout(() => {
+                playWord();
+            }, 500);
+        }
+
+        // 播放单词
+        function playWord() {
+            if (!currentWord) return;
+            
+            const utterance = new SpeechSynthesisUtterance(currentWord);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            speechSynthesis.speak(utterance);
+        }
+
+        // 检查答案
+        async function checkAnswer() {
+            const userInput = document.getElementById('wordInput').value.trim().toLowerCase();
+            const correctWord = currentWord.toLowerCase();
+            
+            const isCorrect = userInput === correctWord;
+            
+            if (isCorrect) {
+                correctCount++;
+                document.getElementById('result').textContent = `正确！${currentWord}`;
+                document.getElementById('result').className = 'result correct';
+            } else {
+                document.getElementById('result').textContent = `错误！正确答案：${currentWord}`;
+                document.getElementById('result').className = 'result incorrect';
+                
+                // 自动加入生词本
+                if (!vocabulary.includes(currentWord)) {
+                    vocabulary.push(currentWord);
+                }
+            }
+            
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('wordInput').disabled = true;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').style.display = 'inline-block';
+            
+            if (!isCorrect) {
+                document.getElementById('addToVocabBtn').style.display = 'inline-block';
+            }
+            
+            isAnswerShown = true;
+            updateStats();
+            
+            // 保存进度和生词本
+            await saveProgress();
+            await saveVocabulary();
+        }
+
+        // 加入生词本
+        async function addToVocabulary() {
+            if (!vocabulary.includes(currentWord)) {
+                vocabulary.push(currentWord);
+                updateStats();
+                updateVocabularyList();
+                await saveVocabulary();
+            }
+            document.getElementById('addToVocabBtn').style.display = 'none';
+        }
+
+        // 下一个单词
+        async function nextWord() {
+            currentIndex++;
+            await saveProgress();
+            showWord();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('currentWord').textContent = currentIndex + 1;
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('vocabularyCount').textContent = vocabulary.length;
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const progress = (currentIndex / words.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // 更新生词本显示
+        function updateVocabularyList() {
+            const container = document.getElementById('vocabularyItems');
+            container.innerHTML = '';
+            
+            vocabulary.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'vocabulary-item';
+                item.textContent = word;
+                container.appendChild(item);
+            });
+            
+            if (vocabulary.length > 0) {
+                document.getElementById('vocabularyList').classList.remove('hidden');
+            }
+        }
+
+        // 结束听写
+        function endDictation() {
+            document.getElementById('wordDisplay').textContent = '听写完成！';
+            document.getElementById('wordInput').disabled = true;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('addToVocabBtn').style.display = 'none';
+            
+            const accuracy = ((correctCount / words.length) * 100).toFixed(1);
+            document.getElementById('result').textContent = `听写完成！正确率：${accuracy}%`;
+            document.getElementById('result').className = 'result correct';
+            document.getElementById('result').classList.remove('hidden');
+            
+            updateVocabularyList();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+        });
+    </script>
+</body>
+</html> 
