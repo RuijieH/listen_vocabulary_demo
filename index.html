@@ -286,7 +286,7 @@
         </div>
 
         <div class="audio-controls">
-            <button class="play-btn" id="playBtn" onclick="playWord()">播放单词</button>
+            <button class="play-btn" id="playBtn" onclick="playWord()">播放单词 (R键)</button>
         </div>
 
         <div class="input-section">
@@ -298,7 +298,7 @@
         <div class="buttons">
             <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()" disabled>检查答案</button>
             <button class="btn btn-success" id="addToVocabBtn" onclick="addToVocabulary()" style="display: none;">加入生词本</button>
-            <button class="btn btn-secondary" id="nextBtn" onclick="nextWord()" style="display: none;">下一个 (空格键)</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextWord()" style="display: none;">下一个 (N键)</button>
         </div>
 
         <div class="vocabulary-list hidden" id="vocabularyList">
@@ -443,12 +443,22 @@
             
             // 添加键盘事件监听
             document.addEventListener('keydown', function(e) {
-                if (e.code === 'Space' && !isAnswerShown) {
-                    e.preventDefault(); // 防止页面滚动
+                // 检查是否聚焦在输入框上
+                const isInputFocused = document.activeElement === document.getElementById('wordInput');
+                
+                // 如果聚焦在输入框上，不处理快捷键
+                if (isInputFocused) {
                     return;
                 }
                 
-                if (e.code === 'Space' && isAnswerShown) {
+                // 播放单词快捷键 (R键)
+                if (e.code === 'KeyR') {
+                    e.preventDefault();
+                    playWord();
+                }
+                
+                // 下一个单词快捷键 (N键) - 仅在答案显示后可用
+                if (e.code === 'KeyN' && isAnswerShown) {
                     e.preventDefault();
                     nextWord();
                 }
