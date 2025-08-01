@@ -4,7 +4,6 @@ import socketserver
 import json
 import os
 from urllib.parse import parse_qs, urlparse
-from phonetics_api import phonetics_api
 
 PORT = 8000
 
@@ -122,8 +121,8 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
-        print(f"服务器运行在 http://localhost:{PORT}")
+    with socketserver.TCPServer(("0.0.0.0", PORT), MyHTTPRequestHandler) as httpd:
+        print(f"服务器运行在 http://0.0.0.0:{PORT}")
         print("按 Ctrl+C 停止服务器")
         try:
             httpd.serve_forever()

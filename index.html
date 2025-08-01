@@ -29,6 +29,27 @@
             max-width: 600px;
             width: 100%;
             text-align: center;
+            position: relative;
+        }
+
+        .reset-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
         }
 
         h1 {
@@ -234,6 +255,7 @@
 </head>
 <body>
     <div class="container">
+        <button class="reset-btn" onclick="resetProgress()">重置进度</button>
         <h1>807词汇听写</h1>
         
         <div class="progress">
@@ -276,8 +298,7 @@
         <div class="buttons">
             <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()" disabled>检查答案</button>
             <button class="btn btn-success" id="addToVocabBtn" onclick="addToVocabulary()" style="display: none;">加入生词本</button>
-            <button class="btn btn-secondary" id="nextBtn" onclick="nextWord()" style="display: none;">下一个</button>
-            <button class="btn btn-warning" onclick="resetProgress()" style="margin-top: 10px;">重置进度</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextWord()" style="display: none;">下一个 (空格键)</button>
         </div>
 
         <div class="vocabulary-list hidden" id="vocabularyList">
@@ -420,6 +441,19 @@
                 }
             });
             
+            // 添加键盘事件监听
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space' && !isAnswerShown) {
+                    e.preventDefault(); // 防止页面滚动
+                    return;
+                }
+                
+                if (e.code === 'Space' && isAnswerShown) {
+                    e.preventDefault();
+                    nextWord();
+                }
+            });
+            
             // 添加开始按钮事件
             document.getElementById('wordDisplay').addEventListener('click', function() {
                 if (words.length > 0) {
@@ -485,7 +519,7 @@
             if (!currentWord) return;
             
             const utterance = new SpeechSynthesisUtterance(currentWord);
-            utterance.lang = 'en-US';
+            utterance.lang = 'en-GB';
             utterance.rate = 0.8;
             speechSynthesis.speak(utterance);
         }
@@ -501,13 +535,19 @@
                 correctCount++;
                 document.getElementById('result').textContent = `正确！${currentWord}`;
                 document.getElementById('result').className = 'result correct';
+                
+                // 答对了才显示加入生词本按钮
+                document.getElementById('addToVocabBtn').style.display = 'inline-block';
             } else {
                 document.getElementById('result').textContent = `错误！正确答案：${currentWord}`;
                 document.getElementById('result').className = 'result incorrect';
                 
-                // 自动加入生词本
+                // 答错了直接加入生词本
                 if (!vocabulary.includes(currentWord)) {
                     vocabulary.push(currentWord);
+                    updateStats();
+                    updateVocabularyList();
+                    await saveVocabulary();
                 }
             }
             
@@ -516,16 +556,11 @@
             document.getElementById('checkBtn').disabled = true;
             document.getElementById('nextBtn').style.display = 'inline-block';
             
-            if (!isCorrect) {
-                document.getElementById('addToVocabBtn').style.display = 'inline-block';
-            }
-            
             isAnswerShown = true;
             updateStats();
             
-            // 保存进度和生词本
+            // 保存进度
             await saveProgress();
-            await saveVocabulary();
         }
 
         // 加入生词本
